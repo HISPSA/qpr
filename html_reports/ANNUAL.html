@@ -1,0 +1,1045 @@
+<style type="text/css">
+
+	.rounded
+	{
+		border-top-left-radius: 4px 4px;
+		border-bottom-left-radius: 4px 4px;
+		border-top-right-radius: 4px 4px;
+		border-bottom-right-radius: 4px 4px;
+	}
+
+	.colheaderQ{
+		font-weight:700;
+		font-size: 14pt;
+		color:#000000;
+		border:1px solid #CFCFCF;
+		padding:4px;
+		width:50px;
+		vertical-align:middle;
+		text-align:center;
+	}
+	.disabled{
+		background-Color:#F2F2F2;
+		opacity: 0.65;
+		font-style: italic;
+	}
+	.colheader
+	{
+		font-weight:700;
+		font-size: 14pt;
+		color:#000000;
+		border:1px solid #CFCFCF;
+		padding:4px;
+		width:50px;
+		vertical-align:top;
+		overflow:hidden;
+		text-overflow:ellipsis;
+		text-align:center;
+	}
+	.colheader1{
+		font-weight:700;
+		font-size: 14pt;
+		color:#000000;
+		border:1px solid #CFCFCF;
+		padding:4px 40px 4px 4px;
+		vertical-align:top;
+		text-align:right;
+	}
+	table.signatory td{
+		padding:4px;
+		border: 0;
+	}
+	#DataBlock1Content{
+		border:0;
+		padding:0px;
+	}
+	td{
+		border-bottom:1px solid #C0C0C0;
+		border-right:1px solid #C0C0C0;
+		padding:0px;
+	}
+	td.data{
+		font-family: Roboto,arial,sans-serif;
+		font-size:8pt;
+		padding-right:3px;
+		text-align:right;
+	}
+	td.green{
+		color:#27A600;
+		font-weight:400;
+		text-shadow: 1px 1px #A3FF96;
+		font-size: 8pt;
+	}
+	td.orange{
+		color:#D15E00;
+		font-weight:400;
+		text-shadow: 1px 1px #FFD396;
+	}
+	td.red{
+		color:#FF0000;
+		font-weight:400;
+		text-shadow: 1px 1px #FF9696;
+	}
+	td.text{
+		text-align:left;
+		padding-left:3px;
+	}
+	.level0{
+		font-family: Roboto,arial,sans-serif;
+		font-size:11pt;
+		font-weight:700;
+		text-align:left;
+		background-Color:#404040;
+		color:#D9D9D9;
+		padding:0px 0px 0px 4px;
+	}
+	.level1{
+		font-family: Roboto,arial,sans-serif;
+		font-size:12pt;
+		font-weight:700;
+		text-align:left;
+		color:#FF6200;
+		padding: 4px 2px 4px 2px;
+	}
+	.level2{
+		font-family: Roboto,arial,sans-serif;
+		font-size:11pt;
+		font-weight:700;
+		text-align:left;
+		padding: 4px 2px 4px 10px;
+	}
+	td.indicator{
+		font-family: Roboto,arial,sans-serif;
+		font-size:10pt;
+		padding: 4px;
+		font-weight:700;
+		color:#1C1C1C;
+		padding: 2px 2px 2px 20px;
+		width:600px;
+	}
+	ul.element{
+		list-style: none;
+		padding:0;
+		margin:0;
+	}
+	li.element{
+		font-family: Roboto,arial,sans-serif;
+		font-size:9pt;
+		padding: 2px 2px 2px 20px;
+	}
+	li.element:before{
+	    content: "• ";
+		color: #636363; /* or whatever color you prefer */
+	}
+	
+	div.repOUname{
+		font-weight:700;
+		font-size:16px;
+		padding:4px 0px 0px 4px;
+		color:#1C7800;
+	}
+	div.repTitle{
+		font-weight:700;
+		font-size:16px;
+		padding:4px 0px 0px 4px;
+		color:#000000;
+	}
+	div.repSector{
+		font-weight:700;
+		font-size:16px;
+		padding:4px 0px 0px 4px;
+		color:#000000;
+	}
+	tr.en{
+		border-bottom:1px solid #ffffff;
+		border-right:1px solid #ffffff;
+		padding:1px;
+	}
+	.ennumber{
+		padding:2px;
+		font-size:9pt;
+		border-bottom:1px solid #ffffff;
+		border-right:1px solid #ffffff;
+	}
+	.entext{
+		padding:2px;
+		font-size:9pt;
+		border-bottom:1px solid #ffffff;
+		border-right:1px solid #ffffff;
+	}
+	svg{
+		cursor:default;cursor:hand;
+	}
+</style>
+
+
+<script type="text/javascript">
+
+var orgUnit = dhis2.report.organisationUnit;
+var orgUnitHierarchy = dhis2.report.organisationUnitHierarchy;
+var orgUnitChildren = dhis2.report.organisationUnitChildren;
+var period = dhis2.report.periods;
+var repuid = getParameterByName('uid');
+var orgUnit_id = getParameterByName('ou');
+var pe = getParameterByName('pe');
+var arrPe = pe.split('Q');
+var ype = arrPe[0];
+var qpe = arrPe[1];
+var today = new Date();
+var dd = today.getDate()-1;
+var mm = today.getMonth()+1; //January is 0!
+var yyyy = today.getFullYear()+1;
+
+$(document).ready(
+
+	function() {
+	
+	var DtmNow;
+	
+	DtmNow = new Date().getTime();
+	
+	document.all("loadingmessage").innerHTML = "<Img Src='../images/ajax-loader-circle.gif'>&nbsp;LOADING";
+
+	CreateOrgHierarchyAndResults('DataBlock1Content');
+	CreateHeader();
+
+}); //document ready function
+
+function CreateHeader(){
+
+	var OUapi = '../api/organisationUnits/' + orgUnit_id + '.json?fields=id,level,name,shortName,displayShortName,featureType,coordinates';
+	var ouJSON 	= JSON.parse($.ajax({url:OUapi, async: false}).responseText);
+	document.getElementById('OrgUnitName').innerHTML = (ouJSON.displayShortName).toUpperCase();
+
+}
+
+function CreateOrgHierarchyAndResults(sDestination){
+
+	var myArr = [];
+	var varDEh 	= '../api/dataElements.json?fields=id,name,description,attributeValues[value,attribute[name]],dataElementGroups[name,dataElementGroupSet[name]]&pageSize=20000';
+	var varINDh = '../api/indicators.json?fields=id,name,description,attributeValues[value,attribute[name]],indicatorGroups[name,indicatorGroupSet[name]]&pageSize=20000';
+	var deJSON 	= JSON.parse($.ajax({url:varDEh, async: false}).responseText);
+	var indJSON = JSON.parse($.ajax({url:varINDh, async: false}).responseText);
+	var iSort1;
+	var iSort2;
+	var iSort3;
+	var unq_dx = '';
+	var dx_secondary = '';
+	var iGrowthS = 0;
+	var dxFyAprilTargetID = '';
+	var dxQtrTargetID = '';
+	var dxTargetFactor;
+	var dxTargetFunction;
+	var calcQ1;
+	var calcQ2;
+	var calcQ3;
+	var calcQ4;
+	var fQ1;
+	var fQ2;
+	var fQ3;
+	var fQ4;
+	var MaxQ;
+	var dxPushType;
+
+	//console.log(varDEh);
+	//console.log(varINDh);
+
+	var sort_by = function(field, reverse, primer){
+
+	   var key = primer ? 
+		   function(x) {return primer(x[field])} : 
+		   function(x) {return x[field]};
+
+	   reverse = !reverse ? 1 : -1;
+
+	   return function (a, b) {
+		   return a = key(a), b = key(b), reverse * ((a > b) - (b > a));
+		 } 
+	}
+
+	for(var r = 0; r < deJSON.dataElements.length; r++) {
+
+		//console.log(deJSON.dataElements[r].name + ': ' + iSort3);
+
+		iSort3 = returnDEattributeValue(deJSON.dataElements[r],'ANN_Sort_Order',0);
+
+		if (iSort3 != 0){
+		
+			iSort1 = returnDEgroupSetName(deJSON.dataElements[r],'');
+			iSort2 = returnDEgroupName(deJSON.dataElements[r],'');
+
+			dxQtrTargetID = returnDEattributeValue(deJSON.dataElements[r],'Target_QTR_DE_UID','');
+
+			iSort3 = ((iSort3.toString().length == 1) ? '0' + iSort3 : iSort3);
+			iGrowthS = returnAttributeValue(deJSON.dataElements[r].attributeValues,'GrowthSentiment',0);
+			unq_dx += (deJSON.dataElements[r].id + ';');
+			dx_secondary += ((dxQtrTargetID.length > 0) ? dxQtrTargetID + ';' : '');
+
+			myArr.push({
+					level1: 			iSort1,
+					level2: 			iSort2,
+					level2_order: 		iSort2,
+					dx: 				deJSON.dataElements[r].id,
+					name: 				deJSON.dataElements[r].name,
+					description: 		deJSON.dataElements[r].description,
+					type: 				'de',
+					sort_order: 		iSort3,
+					growthsentiment: 	iGrowthS,
+					combined_sort_order: iSort1 + ';' + iSort2 + ';' + iSort3,
+					target_dx:			dxQtrTargetID,
+					fyprev_audoutcome:	'',
+					fyear_target: 		'',
+					lastQ_prelim: 		'',
+					lastQ_actual: 		'',
+					fyear_actual: 		''
+				});
+
+		}
+	}
+
+	for(var r = 0; r < indJSON.indicators.length; r++) {
+
+		//console.log(indJSON.indicators[r].name + ': ' + iSort3);
+
+		iSort3 = returnDEattributeValue(indJSON.indicators[r],'ANN_Sort_Order',0);
+
+		if (iSort3 != 0){
+		
+			iSort1 = returnINDgroupSetName(indJSON.indicators[r],'');
+			iSort2 = returnINDgroupName(indJSON.indicators[r],'');
+
+			dxQtrTargetID = returnDEattributeValue(indJSON.indicators[r],'Target_QTR_DE_UID','');
+
+			iSort3 = ((iSort3.toString().length == 1) ? '0' + iSort3 : iSort3);
+			iGrowthS = returnAttributeValue(indJSON.indicators[r].attributeValues,'GrowthSentiment',0);
+			unq_dx += (indJSON.indicators[r].id + ';');
+			dx_secondary += ((dxQtrTargetID.length > 0) ? dxQtrTargetID + ';' : '');
+
+			myArr.push({
+					level1: 			iSort1,
+					level2: 			iSort2,
+					level2_order: 		iSort2,
+					dx: 				indJSON.indicators[r].id,
+					name: 				indJSON.indicators[r].name,
+					description: 		indJSON.indicators[r].description,
+					type: 				'de',
+					sort_order: 		iSort3,
+					growthsentiment: 	iGrowthS,
+					combined_sort_order: iSort1 + ';' + iSort2 + ';' + iSort3,
+					target_dx:			dxQtrTargetID,
+					fyprev_audoutcome:	'',
+					fyear_target: 		'',
+					lastQ_prelim: 		'',
+					lastQ_actual: 		'',
+					fyear_actual: 		''
+				});
+
+		}
+	}
+
+	myArr.sort(sort_by('combined_sort_order', false));
+
+	console.log(JSON.stringify(myArr));
+	
+	var peFprev = '';
+	var peFcurr = '';
+	var peFnext = '';
+	var peFprevPart = '';
+	var peFcurrPart = '';
+	var peFnextPart = '';
+	var yCalc;
+
+	peFcurr = pe.substring(0,4);
+	peFcurrPart = pe.substring(2,4);
+	peFprev = (parseInt(peFcurr)-1);
+	peFprevPart = (parseInt(peFcurrPart)-1);
+	peFnext = (parseInt(peFcurr)+1);
+	peFnextPart = (parseInt(peFcurrPart)+1);
+	/*
+	console.log('peFprev: ' + peFprev);
+	console.log('peFcurr: ' + peFcurr);
+	console.log('peFnext: ' + peFnext);
+	console.log('peFprevPart: ' + peFprevPart);
+	console.log('peFcurrPart: ' + peFcurrPart);
+	console.log('peFnextPart: ' + peFnextPart);
+*/
+
+	var API1 = '../api/analytics.json?dimension=ou:LEVEL-' + orgUnitHierarchy.length + ';' + orgUnit_id + '&dimension=dx:' + unq_dx + '&dimension=JQ48PY4jGXs:iSp8L80CwTH;Nu31MbcdwJw&dimension=co&dimension=pe:' + pe + '&hierarchyMeta=false&displayProperty=NAME&showHierarchy=false';
+	var API2 = '../api/analytics.json?dimension=ou:LEVEL-' + orgUnitHierarchy.length + ';' + orgUnit_id + '&dimension=dx:' + unq_dx + dx_secondary + '&dimension=pe:' + pe + ';' + (peFprev + 'April') + '&hierarchyMeta=false&displayProperty=NAME&showHierarchy=false';
+	//var API2 = '../api/analytics.json?dimension=ou:LEVEL-' + orgUnitHierarchy.length + ';' + orgUnit_id + '&dimension=dx:' + dx_secondary + '&dimension=ufaEBf9s3zH:JhIErCd3xAs&dimension=co&dimension=pe:' + AllQpe + ';' + peFprev + ';' + peFcurr + '&hierarchyMeta=false&displayProperty=NAME&showHierarchy=false';
+	//var API3 = '../api/dataElements.json?filter=id:in:[' + dx_secondary.replace(/;/g,',') + ']&fields=id,name,attributeValues[value,attribute[name]&pageSize=20000';
+	//var API4 = '../api/sqlViews/hLP7iUrtFYA/data.json?criteria=ou:' + orgUnit_id;
+
+	//console.log('API1: ' + API1);
+	//console.log('API2: ' + API2);
+	//console.log('API3: ' + API3);
+	//console.log('API4: ' + API4);
+	//console.log(MaxQ);
+
+	var myNewArr = MergeArrayWithDataValues(myArr,JSON.parse($.ajax({url:API1, async: false}).responseText));
+	myNewArr = MergeArrayWithTargetAndActual(myArr,JSON.parse($.ajax({url:API2, async: false}).responseText),peFprev + 'April',pe);
+
+	//download('temp.json',JSON.stringify(myNewArr))
+	//console.log(myNewArr);
+
+	var Level1 = '';
+	var Level2 = '';
+	var iEndNoteIncr = 0;
+	var sEndNotes = '';
+
+	var ele = document.getElementById(sDestination);
+	var table = document.createElement('table');
+	//table.classList.add('colheader1') ;
+	table.style.backgroundColor = '#ffffff';
+	table.style.width = '100%';
+	table.style.minWidth = '800px';
+	table.style.padding = '0';
+	table.style.borderLeft = '0';
+	table.style.borderTop = '0';
+	table.style.borderRight = '0';
+	table.style.borderBottom = '0';
+	table.style.borderSpacing = '0';
+	ele.appendChild(table);
+
+	var tr = document.createElement('tr');
+	table.appendChild(tr);
+
+	var td = document.createElement('td');
+	//td.classList.add('colheader1') ;
+	td.setAttribute('colspan','1');
+	td.setAttribute('rowspan','1');
+	td.style.borderTop = '0';
+	td.style.borderLeft = '0';
+	tr.appendChild(td);
+
+
+	var dvHeader = document.createElement('div');
+	dvHeader.classList.add('repTitle') ;
+	td.appendChild(dvHeader);
+
+	var txt = document.createTextNode('QUARTERLY PERFORMANCE REPORT');
+	dvHeader.appendChild(txt);
+	var brE = document.createElement('br');
+	dvHeader.appendChild(brE);
+
+	var dvHeader = document.createElement('div');
+	dvHeader.classList.add('repSector') ;
+	td.appendChild(dvHeader);
+	var txt = document.createTextNode('SECTOR: HEALTH');
+	dvHeader.appendChild(txt);
+
+	var dvHeader = document.createElement('div');
+	dvHeader.classList.add('repOUname') ;
+	dvHeader.id = 'OrgUnitName';
+	td.appendChild(dvHeader);
+
+	
+	var dvPeriods = document.createElement('div');
+	dvPeriods.classList.add('repTitle') ;
+	td.appendChild(dvPeriods);
+
+
+	var spY = document.createElement('span');
+	spY.id = ('Report-Title-Fyear') ;
+	dvPeriods.appendChild(spY);
+	var txt = document.createTextNode(peFcurr + '/' + peFnextPart);
+	dvPeriods.appendChild(txt);
+
+
+
+	
+	//var txt = document.createTextNode('Programme / Subprogramme / Performance Measures');
+	//td.appendChild(txt);
+
+	//# COLUMN 1
+	var td = document.createElement('td');
+	td.classList.add('colheader') ;
+	td.setAttribute('colspan','1');
+	td.setAttribute('rowspan','1');
+	tr.appendChild(td)
+	var txt = document.createTextNode('Audited Outcome for ' + peFprev + '/' + peFcurrPart + ' as per Annual Report');
+	td.appendChild(txt);
+
+	//# COLUMN 2
+	var td = document.createElement('td');
+	td.classList.add('colheader') ;
+	td.setAttribute('colspan','1');
+	td.setAttribute('rowspan','1');
+	td.setAttribute('style','background-Color:#F5F5F5;');
+	tr.appendChild(td)
+	var txt = document.createTextNode('Target for  ' + peFcurr + '/' + peFnextPart + ' as per Annual Performance Plan (APP)');
+	td.appendChild(txt);
+
+	//# COLUMN 3
+	var td = document.createElement('td');
+	td.classList.add('colheader') ;
+	td.setAttribute('colspan','1');
+	td.setAttribute('rowspan','1');
+	//td.setAttribute('style','vertical-align:bottom');
+	tr.appendChild(td)
+	var txt = document.createTextNode('4th Quarter Preliminary Output');
+	td.appendChild(txt);
+
+	//# COLUMN 4
+	var td = document.createElement('td');
+	td.classList.add('colheader') ;
+	td.setAttribute('colspan','1');
+	td.setAttribute('rowspan','1');
+	td.setAttribute('style','background-Color:#F5F5F5;');
+	//td.setAttribute('style','vertical-align:bottom');
+	tr.appendChild(td)
+	var txt = document.createTextNode('4th Quarter Actual Output - Validated');
+	td.appendChild(txt);
+
+	//# COLUMN 5
+	var td = document.createElement('td');
+	td.classList.add('colheader') ;
+	td.setAttribute('colspan','1');
+	td.setAttribute('rowspan','1');
+	tr.appendChild(td)
+	var txt = document.createTextNode('Actual output for ' + peFcurr + '/' + peFnextPart + ' as per Annual Report');
+	td.appendChild(txt);
+
+	
+	
+	var tr = document.createElement('tr');
+	table.appendChild(tr);
+	var td = document.createElement('td');
+	td.setAttribute('colspan', 6);
+	tr.appendChild(td)
+	var dv1 = document.createElement('div');
+	dv1.classList.add('level0') ;
+	dv1.setAttribute('bgcolor',"#404040");
+	td.appendChild(dv1)
+	var txt = document.createTextNode('ANNUAL OUTPUTS');
+	dv1.appendChild(txt);
+
+
+	for(var i = 0; i < myArr.length; i++) {
+
+		if (myArr[i].level1 != Level1){
+
+			var tr = document.createElement('tr');
+			table.appendChild(tr);
+			var td = document.createElement('td');
+			td.setAttribute('colspan',6);
+			td.style.borderLeft = ('1px solid #C0C0C0');
+			tr.appendChild(td)
+			var dv1 = document.createElement('div');
+			dv1.classList.add('level1') ;
+			td.appendChild(dv1)
+			var txt = document.createTextNode(myArr[i].level1);
+			dv1.appendChild(txt);
+
+			Level1 = myArr[i].level1
+		}
+
+		if (myArr[i].level2 != Level2){
+			var tr = document.createElement('tr');
+			table.appendChild(tr);
+			var td = document.createElement('td');
+			td.setAttribute('colspan',6);
+			td.style.borderLeft = ('1px solid #C0C0C0');
+			tr.appendChild(td)
+			var dv2 = document.createElement('div');
+			dv2.classList.add('level2') ;
+			td.appendChild(dv2)
+			var txt = document.createTextNode(myArr[i].level2);
+			dv2.appendChild(txt);
+			Level2 = myArr[i].level2
+
+		}
+
+		var tr = document.createElement('tr');
+		table.appendChild(tr);
+		var td = document.createElement('td');
+		td.setAttribute('colspan','1');
+		td.style.borderLeft = ('1px solid #C0C0C0');
+		//td.setAttribute('title',myArr[i].growthsentiment);
+		if (myArr[i].type == 'de'){
+			var ulDE = document.createElement('ul');
+			ulDE.classList.add('element') ;
+			td.appendChild(ulDE);
+			var liDE = document.createElement('li');
+			liDE.classList.add('element') ;
+			ulDE.appendChild(liDE);
+			var txt = document.createTextNode(myArr[i].name);
+			liDE.appendChild(txt);
+		}
+		else{
+			var txt = document.createTextNode(myArr[i].name);
+			td.classList.add('indicator') ;
+			td.appendChild(txt);
+		}
+		tr.appendChild(td)
+
+		// #COL 1
+		var td = document.createElement('td');
+		td.setAttribute('colspan','1');
+		if (myArr[i].fyprev_audoutcome != undefined){
+			var txt = document.createTextNode(myArr[i].fyprev_audoutcome);
+			td.classList.add('data') ;
+			td.appendChild(txt);
+		}
+
+		tr.appendChild(td)
+
+		// #COL 2
+		var td = document.createElement('td');
+		td.setAttribute('colspan','1');
+		td.setAttribute('style','background-Color:#F5F5F5;');
+		if (myArr[i].fyear_target != undefined){
+			var txt = document.createTextNode(myArr[i].fyear_target);
+			td.classList.add('data') ;
+			td.appendChild(txt);
+		}
+
+		tr.appendChild(td)
+
+
+		// #COL 3
+		var td = document.createElement('td');
+		td.setAttribute('colspan','1');
+		if (myArr[i].lastQ_prelim != undefined){
+			var txt = document.createTextNode(myArr[i].lastQ_prelim);
+			td.classList.add('data') ;
+			td.appendChild(txt);
+		}
+
+		tr.appendChild(td)
+
+		// #COL 4
+		var td = document.createElement('td');
+		td.setAttribute('colspan','1');
+		td.setAttribute('style','background-Color:#F5F5F5;');
+		if (myArr[i].lastQ_actual != undefined){
+			var txt = document.createTextNode(myArr[i].lastQ_actual);
+			td.classList.add('data');
+			if (myArr[i].growthsentiment != 0){
+				if (myArr[i].lastQ_actual != ''){
+					if (myArr[i].growthsentiment < 0){
+						if (parseFloat(myArr[i].fyear_target) >= parseFloat(myArr[i].lastQ_actual)){
+							td.classList.add('green');
+						}
+						else{
+							td.classList.add('red');
+						}
+					}
+					if (myArr[i].growthsentiment > 0){
+						if (parseFloat(myArr[i].fyear_target) <= parseFloat(myArr[i].lastQ_actual)){
+							td.classList.add('green');
+						}
+						else{
+							td.classList.add('red');
+						}
+					}
+				}
+			}
+			td.appendChild(txt);
+		}
+
+		tr.appendChild(td)
+
+		// #COL FINAL
+		var td = document.createElement('td');
+		td.setAttribute('colspan','1');
+		if (myArr[i].fyear_actual != undefined){
+			var txt = document.createTextNode(myArr[i].fyear_actual);
+			td.classList.add('data') ;
+			if (myArr[i].fyear_target != undefined){
+				if (myArr[i].growthsentiment != 0){
+					if (myArr[i].growthsentiment < 0){
+						if (parseFloat(myArr[i].fyear_target) >= parseFloat(myArr[i].fyear_actual)){
+							td.classList.add('green');
+						}
+						else{
+							td.classList.add('red');
+						}
+					}
+					if (myArr[i].growthsentiment > 0){
+						if (parseFloat(myArr[i].fyear_target) <= parseFloat(myArr[i].lastQ_actual)){
+							td.classList.add('green');
+						}
+						else{
+							td.classList.add('red');
+						}
+					}
+				}
+			}
+			td.appendChild(txt);
+		}
+
+		tr.appendChild(td)
+
+	}
+
+	document.all("loadingmessage").innerHTML = '';
+	document.all("ReportResults").style.display = 'block';
+	
+	if (sEndNotes.length > 0){
+		document.all("endnotes").innerHTML = '<br><div style="color:#000000;font-size:11pt;font-weight:700;text-decoration: underline;padding:5px;">End Notes:</div><table>' + sEndNotes + '<table>';
+	}
+
+}
+
+	function download(filename, text) {
+		var pom = document.createElement('a');
+		pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+		pom.setAttribute('download', filename);
+
+		if (document.createEvent) {
+			var event = document.createEvent('MouseEvents');
+			event.initEvent('click', true, true);
+			pom.dispatchEvent(event);
+		}
+		else {
+			pom.click();
+		}
+	}
+
+function MergeArrayWithDataValues(myArr,myJSON){
+
+	for(var i = 0; i < myArr.length; i++) {
+
+		for(var p = 0; p < myJSON.rows.length; p++) {
+
+			if (myArr[i].dx == myJSON.rows[p][0]){
+
+				if (myJSON.rows[p][2] == 'Nu31MbcdwJw'){
+					myArr[i]['lastQ_prelim'] = (((myJSON.rows[p][4]).toString().length > 0) ?  ( isNaN(myJSON.rows[p][4]) ? myJSON.rows[p][4] : parseFloat(myJSON.rows[p][4]).toFixed(1).replace('.0','').replace(/\B(?=(\d{3})+(?!\d))/g, ",")) : '');
+				}
+				if (myJSON.rows[p][2] == 'iSp8L80CwTH'){
+					myArr[i]['lastQ_actual'] = (((myJSON.rows[p][4]).toString().length > 0) ?  ( isNaN(myJSON.rows[p][4]) ? myJSON.rows[p][4] : parseFloat(myJSON.rows[p][4]).toFixed(1).replace('.0','').replace(/\B(?=(\d{3})+(?!\d))/g, ",")) : '');
+					myArr[i]['fyear_actual'] = (((myJSON.rows[p][4]).toString().length > 0) ?  ( isNaN(myJSON.rows[p][4]) ? myJSON.rows[p][4] : parseFloat(myJSON.rows[p][4]).toFixed(1).replace('.0','').replace(/\B(?=(\d{3})+(?!\d))/g, ",")) : '');
+				}
+			
+			}
+
+		}
+
+	}
+
+	return myArr;
+
+}
+
+function MergeArrayWithTargetAndActual(myArr,myJSON,pePrev,peCurr){
+
+	for(var i = 0; i < myArr.length; i++) {
+
+		for(var p = 0; p < myJSON.rows.length; p++) {
+		
+			if (myJSON.rows[p][2] == peCurr){
+
+				if ((myArr[i].target_dx == myJSON.rows[p][0])){
+					myArr[i]['fyear_target'] = (((myJSON.rows[p][3]).toString().length > 0) ?  ( isNaN(myJSON.rows[p][3]) ? myJSON.rows[p][4] : parseFloat(myJSON.rows[p][3]).toFixed(1).replace('.0','').replace(/\B(?=(\d{3})+(?!\d))/g, ",")) : '');
+				}
+
+				if ((myArr[i].dx == myJSON.rows[p][0])){
+					//myArr[i]['fyear_actual'] = (((myJSON.rows[p][3]).toString().length > 0) ?  ( isNaN(myJSON.rows[p][3]) ? myJSON.rows[p][4] : parseFloat(myJSON.rows[p][3]).toFixed(1).replace('.0','').replace(/\B(?=(\d{3})+(?!\d))/g, ",")) : '');
+				}
+
+			}
+
+			if (myJSON.rows[p][2] == pePrev){
+				if ((myArr[i].target_dx == myJSON.rows[p][0])){
+					myArr[i]['fyprev_audoutcome'] = (((myJSON.rows[p][3]).toString().length > 0) ?  ( isNaN(myJSON.rows[p][3]) ? myJSON.rows[p][4] : parseFloat(myJSON.rows[p][3]).toFixed(1).replace('.0','').replace(/\B(?=(\d{3})+(?!\d))/g, ",")) : '');
+				}
+			}
+
+		}
+
+	}
+
+	return myArr;
+
+}
+
+function returnAttributeValue(Arr,sName,ReturnDefault){
+	var sReturn = '';
+
+	for(var i = 0; i < Arr.length; i++) {
+		if (Arr[i].attribute.name == sName){
+			sReturn = Arr[i].value;
+		}
+	}
+	if (sReturn.length == 0){
+		return ReturnDefault
+	}
+	else{
+		return sReturn
+	}
+
+}
+
+function returnDEattributeValue(Arr,sName,ReturnDefault){
+	var sReturn = '';
+	
+
+	if (Arr.attributeValues.length > 0){
+		
+		for(var p = 0; p < Arr.attributeValues.length; p++) {
+
+			if (Arr.attributeValues[p].attribute.name == sName){
+				sReturn = Arr.attributeValues[p].value;
+				//console.log(Arr.name);
+			}
+
+		}
+	}
+	if (sReturn.length == 0){
+		return ReturnDefault
+	}
+	else{
+		return sReturn
+	}
+
+}
+
+function returnDEgroupSetName(Arr,ReturnDefault){
+	var sReturn = '';
+	if (Arr.dataElementGroups.length > 0){
+		
+		for(var p = 0; p < Arr.dataElementGroups.length; p++) {
+			sReturn = Arr.dataElementGroups[p].dataElementGroupSet.name;
+		}
+	}
+	if (sReturn.length == 0){
+		return ReturnDefault
+	}
+	else{
+		return sReturn
+	}
+
+}
+
+function returnDEgroupName(Arr,ReturnDefault){
+	var sReturn = '';
+	if (Arr.dataElementGroups.length > 0){
+	
+		sReturn = Arr.dataElementGroups[0].name;
+
+	}
+	if (sReturn.length == 0){
+		return ReturnDefault
+	}
+	else{
+		return sReturn
+	}
+
+}
+
+
+function returnINDgroupSetName(Arr,ReturnDefault){
+	var sReturn = '';
+	if (Arr.indicatorGroups.length > 0){
+		
+		for(var p = 0; p < Arr.indicatorGroups.length; p++) {
+			sReturn = Arr.indicatorGroups[p].indicatorGroupSet.name;
+		}
+	}
+	if (sReturn.length == 0){
+		return ReturnDefault
+	}
+	else{
+		return sReturn
+	}
+
+}
+
+function returnINDgroupName(Arr,ReturnDefault){
+	var sReturn = '';
+	if (Arr.indicatorGroups.length > 0){
+	
+		sReturn = Arr.indicatorGroups[0].name;
+
+	}
+	if (sReturn.length == 0){
+		return ReturnDefault
+	}
+	else{
+		return sReturn
+	}
+
+}
+
+function formatNumber(num){
+    return ("" + num).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, function($1) { return $1 + " " });
+}
+
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+function LookupName(theData,Val){
+
+	sReturn = theData[Val];
+	return  sReturn;
+}
+
+function ReturnLookup(theData,dx,ou){
+
+	var i;
+	var sReturn = '';
+
+	for(i = 0; i < theData.rows.length; i++) {
+	
+		if (theData.rows[i][0] == dx)
+		{
+			if (theData.rows[i][1] == ou)
+			{
+				sReturn = theData.rows[i][3];
+			}
+		}
+
+	}
+
+	return sReturn;
+}
+
+function ReturnLookupValue(theData,dx,co,ou){
+
+	var i;
+	var sReturn = '';
+
+	for(i = 0; i < theData.rows.length; i++) {
+	
+		if (theData.rows[i][0] == dx)
+		{
+			if (theData.rows[i][1] == ou)
+			{
+				if (theData.rows[i][2] == co)
+				{
+					sReturn = theData.rows[i][3];
+				}
+			}
+		}
+
+	}
+
+	return sReturn;
+}
+
+function ReturnPreviousMonthName(){
+	var d = new Date();
+	var monthNames = ["January", "February", "March", "April", "May", "June",
+	  "July", "August", "September", "October", "November", "December"];
+	return monthNames[d.getMonth()-1];
+}
+
+function ReturnPreviousMonthYear(){
+	var y = new Date();
+	if (y.getMonth() == 12){
+		return y.getFullYear()-1;
+	}
+	else{
+		return y.getFullYear();
+	}
+}
+
+function ReturnMonthAbbr(iMonth){
+	var d = new Date();
+	var monthShortNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+	return monthShortNames[iMonth];
+}
+
+ function getTextRotation(destinationID,sText,pxSize,Rotation){
+	 
+	var svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+	document.getElementById(destinationID).appendChild(svgElement); 
+
+	var svgText;
+	svgText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+	svgText.setAttribute("style", "stroke:#000000;fill:#ffffff;writing-mode: tb;glyph-orientation-vertical: 0;opacity: 0.9;");
+	svgText.textContent = sText;
+	svgElement.appendChild(svgText);
+
+ }
+ function download(){
+
+	var htmls = "";
+	var uri = 'data:application/vnd.ms-excel;base64,';
+	var template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><style type="text/css">.rounded{border-top-left-radius:4px 4px;border-bottom-left-radius:4px 4px;border-top-right-radius:4px 4px;border-bottom-right-radius:4px 4px}.green{color:green;font-weight:400;text-shadow: 1px 1px #A3FF96;font-size: 8pt;}.orange{color:orange;font-weight:400;text-shadow: 1px 1px #FFD396;}.red{color:red;font-weight:400;text-shadow: 1px 1px #FF9696;}.colheaderQ{font-weight:700;font-size:14pt;color:#000;border:1px solid #cfcfcf;padding:4px;width:50px;vertical-align:middle;text-align:center}.disabled{background-Color:#f2f2f2;opacity:.65;font-style:italic}.colheader{font-weight:700;font-size:14pt;color:#000;border:1px solid #cfcfcf;padding:4px;width:50px;vertical-align:top;overflow:hidden;text-overflow:ellipsis;text-align:center}.colheader1{font-weight:700;font-size:14pt;color:#000;border:1px solid #cfcfcf;padding:4px 40px 4px 4px;vertical-align:top;text-align:right}table.signatory td{padding:4px;border:0}#DataBlock1Content{border:0;padding:0}td{border-bottom:1px solid #c0c0c0;border-right:1px solid #c0c0c0;padding:0}td.data{font-family:Roboto,arial,sans-serif;font-size:8pt;font-weight:300;padding-right:3px;text-align:right}td.text{text-align:left;padding-left:3px}.level0{font-family:Roboto,arial,sans-serif;font-size:11pt;font-weight:700;text-align:left;background-Color:#303030;color:#c0c0c0;padding:0 0 0 4px}.level1{font-family:Roboto,arial,sans-serif;font-size:12pt;font-weight:700;text-align:left;color:#ff6200;padding:4px 2px 4px 2px}.level2{font-family:Roboto,arial,sans-serif;font-size:11pt;font-weight:700;text-align:left;padding:4px 2px 4px 10px}td.indicator{font-family:Roboto,arial,sans-serif;font-size:10pt;padding:4px;font-weight:700;color:#1c1c1c;padding:2px 2px 2px 20px;width:600px}ul.element{list-style:none;padding:0;margin:0}li.element{font-family:Roboto,arial,sans-serif;font-size:9pt;padding:2px 2px 2px 20px}li.element:before{content:"• ";color:#636363}div.repOUname{font-weight:700;font-size:16px;padding:4px 0 0 4px;color:#1c7800}div.repTitle{font-weight:700;font-size:16px;padding:4px 0 0 4px;color:#000}div.repSector{font-weight:700;font-size:16px;padding:4px 0 0 4px;color:#000}tr.en{border-bottom:1px solid #fff;border-right:1px solid #fff;padding:1px}.ennumber{padding:2px;font-size:9pt;border-bottom:1px solid #fff;border-right:1px solid #fff}.entext{padding:2px;font-size:9pt;border-bottom:1px solid #fff;border-right:1px solid #fff}svg{cursor:default;cursor:hand}</style><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>'; 
+	var base64 = function(s) {
+		return window.btoa(unescape(encodeURIComponent(s)))
+	};
+
+	var format = function(s, c) {
+		return s.replace(/{(\w+)}/g, function(m, p) {
+			return c[p];
+		})
+	};
+
+	document.getElementById('exceldownloadbutton').style.display='none';
+
+	htmls = ('<table style="">' + document.getElementById('ReportResults').innerHTML + '</table>').replace('export to Excel','');
+
+	document.getElementById('exceldownloadbutton').style.display='block';
+
+	var ctx = {
+		worksheet : 'Worksheet',
+		table : htmls
+	}
+
+	var link = document.createElement("a");
+	//alert (document.getElementById('OrgUnitName').innerHTML);
+	link.download = "QPR_" + document.getElementById('OrgUnitName').innerHTML + ".xls";
+	link.href = uri + base64(format(template, ctx));
+	link.click();
+
+}
+
+</script>
+
+<div id='loadingmessage' name='loadingmessage' style=''>
+	<div style='color:#999999;font-family:arial;font-weight:700;font-size:11pt;width:25%;border:1px solid #F5F5F5;padding:4px;vertical-align:middle;' class='rounded'>
+		<Img Src='../images/ajax-loader-circle.gif'>&nbsp;LOADING&nbsp;
+	</div>
+</div>
+
+<table style='height:100%;display:none;padding:0;border-spacing:0;border:0;' cellpadding=0 cellspacing=0 id='ReportResults' name='ReportResults'>
+
+ <tr>
+  <td id='DataBlock1Content' name='DataBlock1Content' style=''>
+ 
+  </td>
+ </tr>
+
+ 
+ <tr>
+  <td id='endnotes' name='endnotes' style='color:#000000;font-size:9pt;height:10px;border-bottom:1px solid #ffffff;border-right:1px solid #ffffff;'>
+	&nbsp;
+  </td>
+ </tr>
+
+ <tr>
+  <td id='signatory' name='signatory' style='color:#000000;font-size:9pt;height:10px;border-bottom:1px solid #ffffff;border-right:1px solid #ffffff;'>
+	<p>&nbsp;</p>
+	<table class='signatory'>
+		<tr>
+			<td>I, ............................................................................................................... hereby certify that the non-financial data submitted for the current quarter is correct and gives an accurate overview of the performance of the department</td>
+		</tr>
+		<tr>
+			<td>&nbsp;</td>
+		</tr>
+		<tr>
+			<td>Signed by: Head of the Department ............................................................... </td>
+		</tr>
+		<tr>
+			<td>Date ........../................./................ </td>
+		</tr>
+	</table>
+	<br>
+  </td>
+ </tr>
+ 
+ <tr>
+  <td style="border:0;text-align:center;">
+	<!-- <a href="javascript:download();">export to Excel</a> -->
+	<input type="button" value="Download to Excel" id="exceldownloadbutton" name="exceldownloadbutton" onclick="javascript:download()" style="width:200px;position:absolute;left:306px;top:65px;">
+  </td>
+ </tr>
+</table>

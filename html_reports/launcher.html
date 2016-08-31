@@ -1,0 +1,144 @@
+
+<style>
+	a {color:#000000;cursor:default;}
+	a:hover {color:blue;cursor:hand;cursor:pointer;}
+	.rounded{
+		border:1px solid #C0C0C0;
+		-webkit-border-radius: 4px 4px 4px 4px;
+		-moz-border-radius: 4px 4px 4px 4px;
+		border-radius: 4px 4px 4px 4px;
+	}
+	.roundedTop{
+		-webkit-border-radius: 4px 4px 0px 0px;
+		-moz-border-radius: 4px 4px 0px 0px;
+		border-radius: 4px 4px 0px 0px;
+	}
+	.roundedBottom{
+		-webkit-border-radius: 0px 0px 4px 4px;
+		-moz-border-radius: 0px 0px 4px 4px;
+		border-radius: 0px 0px 4px 4px;
+	}
+</style>
+
+<div style='height:50%;top:25%;left:25%;position:absolute;'>
+
+  <div style='background-Color:#799BD2;font-size:10pt;color:#F5F5F5;height:5%;padding:2px;vertical-align:bottom;width:100%;-webkit-box-shadow: 5px 5px 5px #666;' class='roundedTop'> QPR launcher </div>
+
+  <div style='width:100%;height:90%;background-Color:#F5F5F5;border:1px solid #799BD2;padding:1px;-webkit-box-shadow: 5px 5px 5px #666;'>
+
+	<table style='height:100%;'>
+		<tr>
+			<td style='width:50%;vertical-align:top;'> 
+
+			 <select name="ou" id="ou" size="11" style="width:200px;border:1px solid #799BD2;">
+				<option value='JLA7wl59oN3'>South Africa</option>
+				<option value='HYgDkMEQ0pu'>&nbsp;&nbsp;Health</option>
+				<option value='WeeW3tgF69f'>&nbsp;&nbsp;&nbsp;&nbsp;Eastern Cape</option>
+				<option value='qyZArFNP07h'>&nbsp;&nbsp;&nbsp;&nbsp;Free State</option>
+				<option value='HpotDYGlHB5'>&nbsp;&nbsp;&nbsp;&nbsp;Gauteng</option>
+				<option value='qtVL8gOPChy'>&nbsp;&nbsp;&nbsp;&nbsp;KwaZulu-Natal</option>
+				<option value='NNUprRnQh8n'>&nbsp;&nbsp;&nbsp;&nbsp;Limpopo</option>
+				<option value='FJmdnq1nvpE'>&nbsp;&nbsp;&nbsp;&nbsp;Mpumalanga</option>
+				<option value='ZtggqMhDag8'>&nbsp;&nbsp;&nbsp;&nbsp;Northern Cape</option>
+				<option value='hhdLMd7rMJh'>&nbsp;&nbsp;&nbsp;&nbsp;North West</option>
+				<option value='mjpkDVVnYpi'>&nbsp;&nbsp;&nbsp;&nbsp;Western Cape</option>
+			  </select>
+
+			</td>
+			<td style='width:50%;vertical-align:top;'>
+			
+			 <select name="pe" id="pe" size="11" style="width:200px;border:1px solid #799BD2;">
+			  </select>
+
+
+			</td>
+		</tr>
+	</table>
+
+  </div>
+  
+  <div style='background-Color:#799BD2;font-size:10pt;color:#F5F5F5;height:30px;padding:2px;width:100%;text-align:right;-webkit-box-shadow: 5px 5px 5px #666;' class='roundedBottom'> 
+  
+  	<table style='height:100%;width:100%;'>
+		<tr>
+			<td style='width:50%;vertical-align:top;'> &nbsp; </td>
+			<td style='width:50%;vertical-align:top;'>
+				<input type=button value='generate' class='' style='' onclick="javascript:showreport()">
+			</td>
+		</tr>
+	</table>
+
+  </div>
+
+</div>
+
+<script language=javascript>
+
+var sPer = document.getElementById('pe');
+
+var today = new Date();
+var yyyy = today.getFullYear()+1;
+var mm = today.getMonth()+1;
+
+for (var i = 2015; i < yyyy; i++) {
+
+	var opt = document.createElement('option');
+	opt.setAttribute('value',i + 'April');
+	opt.innerText = i;
+	sPer.add(opt); 
+
+	if (i != yyyy){
+	
+		for (var q = 2; q <= 4; q++) {
+			var opt = document.createElement('option');
+			opt.setAttribute('value',i + 'Q' + q);
+			opt.innerText = '  fQ' + (q-1);
+			sPer.add(opt); 
+		}
+		var opt = document.createElement('option');
+		opt.setAttribute('value',(i+1) + 'Q1');
+		opt.innerText = '  fQ4';
+		sPer.add(opt); 
+	}
+	else{
+		for (var q = 2; q <= Math.ceil(mm/12); q++) {
+
+			var opt = document.createElement('option');
+			opt.setAttribute('value',i + 'Q' + q);
+			opt.innerText = '  fQ' + (q-1);
+			sPer.add(opt); 
+
+		}
+	}
+
+}
+
+function showreport(){
+	if  (((document.getElementById('ou').value).length == 0) || ((document.getElementById('pe').value).length == 0)){
+		alert ('Please select a region AND period');
+		return false;
+	}
+	else{
+		if (document.getElementById('pe').value.indexOf('April') > 0){
+			window.location = 'generateHtmlReport.action?uid=lGs3G87ZKyn&ou=' + document.getElementById('ou').value + '&pe=' + document.getElementById('pe').value;
+		}
+		else{
+			window.location = 'generateHtmlReport.action?uid=rqZUf2JwlXh&ou=' + document.getElementById('ou').value + '&pe=' + document.getElementById('pe').value;
+		}
+	}
+}
+function download(filename, text) {
+	var pom = document.createElement('a');
+	pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+	pom.setAttribute('download', filename);
+
+	if (document.createEvent) {
+		var event = document.createEvent('MouseEvents');
+		event.initEvent('click', true, true);
+		pom.dispatchEvent(event);
+	}
+	else {
+		pom.click();
+	}
+}
+</script>
