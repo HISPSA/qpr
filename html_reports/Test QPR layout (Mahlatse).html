@@ -1,0 +1,639 @@
+<style type="text/css">
+
+	td
+	  {
+		  padding:4px;
+		  font-size:10.0pt;
+		  font-weight:400;
+		  font-style:normal;
+		  text-decoration:none;
+		  font-family:Arial;
+		  text-align:general;
+		  vertical-align:middle;
+		  border:none;
+	}
+	a, span
+	 {
+		  padding:4px;
+		  font-size:9.0pt;
+		  font-weight:400;
+		  font-style:normal;
+		  text-decoration:none;
+		  font-family:Tahoma,Verdana,Arial;
+		  font-size: 8pt;
+		  text-align:general;
+		  vertical-align:middle;
+		  border:none;
+	}
+	th.oucolheader
+	{
+		font-weight:700;
+		color:#000000;
+		font-size:9pt;
+		border:1px solid #000000;
+		vertical-align:bottom;
+		text-align:left;
+	}
+	.colheader
+	{
+		font-weight:700;
+		color:#101010;
+		border:1px solid #CFCFCF;
+		padding:4px;
+	}
+	th.mycolheader
+	{
+		font-weight:700;
+		color:#000000;
+		font-size:9pt;
+		border:1px solid #000000;
+		text-align:center;
+	}
+	th.mycolheadersmall
+	{
+		font-weight:700;
+		color:#000000;
+		font-size:8pt;
+		border:2px solid #000000;
+		text-align:center;
+	}
+	td.subtotal
+	{
+		background-Color: #D4D4D4;
+		font-weight: 700;
+		border:1px solid #000000;
+		padding:2px;
+		text-align:left;
+	}
+	td.subtotalyellow
+	{
+		background-Color: #F4FF5C;
+		font-weight: 700;
+		border:1px solid #000000;
+		padding:2px;
+		text-align:left;
+	}
+	td.numericsubtotal
+	{
+		background-Color: #D4D4D4;
+		font-weight: 700;
+		border:1px solid #000000;
+		padding:2px;
+		text-align:right;
+	}
+	td.numericsubtotalyellow
+	{
+		background-Color: #F4FF5C;
+		font-weight: 700;
+		border:1px solid #000000;
+		padding:2px;
+		text-align:right;
+	}
+	td.data
+	{
+		font-weight:400;
+		color:#101010;
+		border:1px solid #000000;
+		padding:2px;
+	}
+	td.numericdata
+	{
+		font-weight:400;
+		color:#101010;
+		border:1px solid #000000;
+		padding:5px;
+		text-align:right;
+	}
+	td.numericdatabold
+	{
+		font-weight:700;
+		color:#101010;
+		border:1px solid #000000;
+		padding:2px;
+		text-align:right;
+	}
+
+	td.numericdataperc
+	{
+		font-weight:400;
+		font-size:8pt;
+		font-style: italic;
+		color:#101010;
+		border:1px solid #000000;
+		padding:5px;
+		text-align:right;
+	}
+	td.numericdatapercbold
+	{
+		font-weight:700;
+		font-size:8pt;
+		font-style: italic;
+		color:#101010;
+		border:1px solid #000000;
+		padding:2px;
+		text-align:right;
+	}
+	td.border
+	{
+		border:1px solid #000000;
+		padding:2px;
+	}
+	.center
+	{
+		text-align:center;
+	}
+	.datablockTitle
+	{
+		font-size:16pt;
+		font-weight:700;
+		color:#121212;
+		padding:4px;
+	}
+	.datablockDescription
+	{
+		font-size:9pt;
+		font-weight:400;
+		color:#121212;
+		padding:8px;
+	}
+	.ReferenceCaption
+	{
+		font-weight:700;
+		color:#101010;
+		font-size:10pt;
+		text-align:left;
+		padding:10px;
+	}
+	.rounded
+	{
+		border-top-left-radius: 4px 4px;
+		border-bottom-left-radius: 4px 4px;
+		border-top-right-radius: 4px 4px;
+		border-bottom-right-radius: 4px 4px;
+	}
+</style>
+
+
+<script type="text/javascript">
+
+var orgUnit = dhis2.report.organisationUnit;
+var orgUnitHierarchy = dhis2.report.organisationUnitHierarchy;
+var orgUnitChildren = dhis2.report.organisationUnitChildren;
+var period = dhis2.report.periods;
+var repuid = getParameterByName('uid');
+
+var varJSON;
+var outVals = '';
+var outCumul = '';
+var outCumulOrg = '';
+var CumulOrgCount = 0;
+var outJSON;
+var orgUnit_id = getParameterByName('ou');
+var qPe = getParameterByName('pe');
+var qPEname = getParameterByName('pename');
+var qPEcolName = getParameterByName('pecol');
+var qAllNoSR = getParameterByName('show');
+
+var today = new Date();
+
+var dd = today.getDate()-1;
+var mm = today.getMonth()+1; //January is 0!
+var yyyy = today.getFullYear()+1;
+
+
+$(document).ready(
+
+	function() {
+	
+	var DtmNow;
+	
+	DtmNow = new Date().getTime();
+
+	CreateOrgHierarchyAndResults('DataBlock1Content');
+
+	if (qPEname != ''){
+		//$( "#TITLE_DATE_RANGE" ).html('<strong style="font-size:14pt;">MomConnect Converted Registrations ' + qPEname + '</strong>');
+	}
+	else{
+		//$( "#TITLE_DATE_RANGE" ).html('<strong style="font-size:14pt;">MomConnect Converted Registrations September 2014 to ' + ReturnPreviousMonthName() + ' ' + ReturnPreviousMonthYear() + '</strong>');
+	}
+
+}); //document ready function
+
+function CreateOrgHierarchyAndResults(sDestination){
+
+	var myArr = [];
+	var i;
+	var p;
+	var sReturn = '';
+	var sBGcol;
+	var sCol;
+
+	var Level1 = '';
+	var Level2 = '';
+	var Level3 = '';
+	var Level3Name = '';
+
+	qPE = getParameterByName('pe');
+	//console.log('pe=' + qPE);
+
+	var ele = document.getElementById(sDestination);
+	var table = document.createElement('table');
+	table.style.backgroundColor = '#ffffff';
+	table.style.width = '75%';
+	table.style.minWidth = '800px';
+	table.style.borderSpacing = '0';
+	ele.appendChild(table);
+
+	var varDEh 	= '../api/dataElementGroupSets.json?filter=name:startsWith:Programme&fields=id,name,dataElementGroups[dataElements[id,name,description,dataElementGroups[id,name,attributeValues[value,attribute[name]]],attributeValues[value,attribute[name]]]]&pageSize=20000';
+	var varINDh = '../api/indicatorGroupSets.json?filter=name:startsWith:Programme&fields=id,name,indicatorGroups[indicators[id,name,description,indicatorGroups[id,name,attributeValues[value,attribute[name]]],attributeValues[value,attribute[name]]]]&pageSize=20000';
+
+	console.log(varDEh);
+	console.log(varINDh);
+
+	//var varSR = '../api/analytics.json?dimension=dx:lPVvmrINVHS;DHP3S3oR8Ob;hll1AMnqnro;DHP3S3oR8Ob;dwqkOMJkDhC;kVuIug0bDcZ;TkNTN1Di74F;elDuId82Ech;fGwLFzuAQcS;orDTdGUMTR4;b1zV5iZXXlo;vqwlped2JGq;F5Q88S4biV3;ML6rEaBympC&dimension=ou:LEVEL-1;' + orgUnit_id + '&dimension=co&filter=pe:' + yyyymm + '&hierarchyMeta=true&displayProperty=NAME&showHierarchy=true';
+
+	var deJSON 	= $.ajax({url:varDEh, async: false}).responseText;
+	var indJSON = $.ajax({url:varINDh, async: false}).responseText;
+
+	myArr = returnMergedStructure(JSON.parse(deJSON),JSON.parse(indJSON));
+	
+	ArrToHTML1(myArr,sDestination);
+	
+}
+
+function returnMergedStructure(deJSON,indJSON){
+
+	var retArr = [];
+	var iCounter = 0;
+	var iSort1;
+	var iSort2;
+	var iSort3;
+
+	var sort_by = function(field, reverse, primer){
+
+	   var key = primer ? 
+		   function(x) {return primer(x[field])} : 
+		   function(x) {return x[field]};
+
+	   reverse = !reverse ? 1 : -1;
+
+	   return function (a, b) {
+		   return a = key(a), b = key(b), reverse * ((a > b) - (b > a));
+		 } 
+	}
+
+	for(var gs = 0; gs < deJSON.dataElementGroupSets.length; gs++) {
+
+		for(var g = 0; g < deJSON.dataElementGroupSets[gs].dataElementGroups.length; g++) {
+		
+			for(var i = 0; i < deJSON.dataElementGroupSets[gs].dataElementGroups[g].dataElements.length; i++) {
+
+				iSort1 = deJSON.dataElementGroupSets[gs].name;
+				iSort2 = returnAttributeValue(deJSON.dataElementGroupSets[gs].dataElementGroups[g].dataElements[i].dataElementGroups[0].attributeValues,'QPR_Sort_Order',0);
+				iSort2 = ((iSort2.toString().length == 1) ? '0' + iSort2 : iSort2);
+				iSort3 = returnAttributeValue(deJSON.dataElementGroupSets[gs].dataElementGroups[g].dataElements[i].attributeValues,'QPR_Sort_Order',0);
+				iSort3 = ((deJSON.dataElementGroupSets[gs].dataElementGroups[g].dataElements[i].attributeValues.length > 0) ? deJSON.dataElementGroupSets[gs].dataElementGroups[g].dataElements[i].attributeValues[0].value : 0);
+				
+				if (iSort3.toString() != '0'){
+
+					iSort3 = ((iSort3.toString().length == 1) ? '0' + iSort3 : iSort3);
+
+					retArr.push({
+							level1: deJSON.dataElementGroupSets[gs].name,
+							level2: ((deJSON.dataElementGroupSets[gs].dataElementGroups[g].dataElements[i].dataElementGroups.length > 0) ? deJSON.dataElementGroupSets[gs].dataElementGroups[g].dataElements[i].dataElementGroups[0].name : '_?'),
+							level2_order: iSort2,
+							dx: deJSON.dataElementGroupSets[gs].dataElementGroups[g].dataElements[i].id,
+							name: deJSON.dataElementGroupSets[gs].dataElementGroups[g].dataElements[i].name,
+							description: deJSON.dataElementGroupSets[gs].dataElementGroups[g].dataElements[i].description,
+							type: 'de',
+							sort_order: iSort3,
+							combined_sort_order: deJSON.dataElementGroupSets[gs].name + ';' + iSort2 + ';' + iSort3
+					});
+					iCounter += 1;
+				}
+			}
+		}
+	}
+
+	for(var gs = 0; gs < indJSON.indicatorGroupSets.length; gs++) {
+
+		for(var g = 0; g < indJSON.indicatorGroupSets[gs].indicatorGroups.length; g++) {
+		
+			for(var i = 0; i < indJSON.indicatorGroupSets[gs].indicatorGroups[g].indicators.length; i++) {
+			
+				iSort1 = indJSON.indicatorGroupSets[gs].name;
+				iSort2 = returnAttributeValue(indJSON.indicatorGroupSets[gs].indicatorGroups[g].indicators[i].indicatorGroups[0].attributeValues,'QPR_Sort_Order',0);
+				iSort2 = ((iSort2.toString().length == 1) ? '0' + iSort2 : iSort2);
+				iSort3 = returnAttributeValue(indJSON.indicatorGroupSets[gs].indicatorGroups[g].indicators[i].attributeValues,'QPR_Sort_Order',0);
+				//iSort3 = ((indJSON.indicatorGroupSets[gs].indicatorGroups[g].indicators[i].attributeValues.length > 0) ? indJSON.indicatorGroupSets[gs].indicatorGroups[g].indicators[i].attributeValues[0].value : 0);
+				
+				if (iSort3.toString() != '0'){
+				
+					iSort3 = ((iSort3.toString().length == 1) ? '0' + iSort3 : iSort3);
+
+					retArr.push({
+							level1: indJSON.indicatorGroupSets[gs].name,
+							level2: ((indJSON.indicatorGroupSets[gs].indicatorGroups[g].indicators[i].indicatorGroups.length > 0) ? indJSON.indicatorGroupSets[gs].indicatorGroups[g].indicators[i].indicatorGroups[0].name : ' '),
+							level2_order: iSort2,
+							dx: indJSON.indicatorGroupSets[gs].indicatorGroups[g].indicators[i].id,
+							name: indJSON.indicatorGroupSets[gs].indicatorGroups[g].indicators[i].name,
+							description: indJSON.indicatorGroupSets[gs].indicatorGroups[g].indicators[i].description,
+							type: 'ind',
+							sort_order: iSort3,
+							combined_sort_order: indJSON.indicatorGroupSets[gs].name + ';' + iSort2 + ';' + iSort3
+					});
+					iCounter += 1;
+				}
+			}
+		}		
+	
+	}
+
+	retArr.sort(sort_by('combined_sort_order', false));
+
+	console.log(JSON.stringify(retArr));
+
+	return retArr
+
+}
+
+function returnAttributeValue(Arr,sName,ReturnDefault){
+	var sReturn = '';
+	for(var i = 0; i < Arr.length; i++) {
+		if (Arr[i].attribute.name == sName){
+			sReturn = Arr[i].value;
+		}
+	}
+	if (sReturn.length == 0){
+		return ReturnDefault
+	}
+	else{
+		return sReturn
+	}
+}
+
+function ArrToHTML(myArr,sDestination){
+
+	for(var i = 0; i < myArr.length; i++) {
+		if (myArr[i].level1 != Level1){
+
+			var tr = document.createElement('tr');
+			table.appendChild(tr);
+			var td = document.createElement('td');
+			td.colspan = 3;
+			tr.appendChild(td)
+			var h2 = document.createElement('h2');
+			td.appendChild(h2)
+			var txt = document.createTextNode(myArr[i].level1);
+			h2.appendChild(txt);
+
+			if (myArr[i].level2 != Level2){
+				var tr = document.createElement('tr');
+				table.appendChild(tr);
+				var td = document.createElement('td');
+				td.colspan = 1;
+				tr.appendChild(td)
+				var td = document.createElement('td');
+				td.colspan = 2;
+				tr.appendChild(td)
+				var h3 = document.createElement('h3');
+				td.appendChild(h3)
+				var txt = document.createTextNode(myArr[i].level2);
+				h3.appendChild(txt);
+				Level2 = myArr[i].level2
+			}
+			else{
+				var tr = document.createElement('tr');
+				table.appendChild(tr);
+				var td = document.createElement('td');
+				td.colspan = 3;
+				tr.appendChild(td)
+				var txt = document.createTextNode(myArr[i].name);
+				td.appendChild(txt);
+			}
+			Level1 = myArr[i].level1
+		}
+		else{
+			if (myArr[i].level2 != Level2){
+				var tr = document.createElement('tr');
+				table.appendChild(tr);
+				var td = document.createElement('td');
+				td.colspan = 1;
+				tr.appendChild(td)
+				var td = document.createElement('td');
+				td.colspan = 2;
+				tr.appendChild(td)
+				var h3 = document.createElement('h3');
+				td.appendChild(h3)
+				var txt = document.createTextNode(myArr[i].level2);
+				h3.appendChild(txt);
+				Level2 = myArr[i].level2
+			}
+			else{
+				var tr = document.createElement('tr');
+				table.appendChild(tr);
+				var td = document.createElement('td');
+				td.colspan = 3;
+				tr.appendChild(td)
+				var txt = document.createTextNode(myArr[i].name);
+				td.appendChild(txt);
+			}
+		}
+
+	}
+
+	document.all("loadingmessage").innerHTML = '';
+	document.all("ReportResults").style.display = 'block';
+
+	$(sDestination).html(myArr.toString());
+
+}
+
+function ArrToHTML1(myData,sDestination){
+
+	var i;
+	var p;
+	var sReturn = '';
+	var sBGcol;
+	var sCol;
+	var iPR = 0;
+	var iGR = 0;
+	var iDE = 0;
+	var iIND = 0;
+	var sLast1 = '';
+	var sLast2 = '';
+
+	sReturn += '<table class="listTable gridTable"><thead><tr>';
+	sReturn += '<th>level1</th>';
+	sReturn += '<th>2_order</th>';
+	sReturn += '<th>level2</th>';
+	sReturn += '<th>3_order</th>';
+	sReturn += '<th>3_type</th>';
+	sReturn += '<th>level3</th>';
+	sReturn += '</tr></tr></thead>';
+	sReturn += '<tbody>';
+
+	for(i = 0; i < myData.length; i++) {
+		iPR += ((sLast1 != myData[i].level1) ? 1 : 0);
+		iGR += ((sLast2 != myData[i].level2) ? 1 : 0);
+		iDE += ((myData[i].type == 'de') ? 1 : 0);
+		iIND += ((myData[i].type == 'ind') ? 1 : 0);
+		sReturn += '<tr>';
+		sReturn += '<td>' + ((myData[i].level1 != sLast1) ? myData[i].level1 : '') + '</td>';
+		sReturn += '<td>' + ((myData[i].level2 != sLast2) ? myData[i].level2_order : '') + '</td>';
+		sReturn += '<td>' + ((myData[i].level2 != sLast2) ? myData[i].level2 : '') + '</td>';
+		sReturn += '<td>' + ((myData[i].type == 'ind') ? '<b>' : '') + myData[i].sort_order + ((myData[i].type == 'ind') ? '</b>' : '') + '</td>';
+		sReturn += '<td>' + ((myData[i].type == 'ind') ? '<b>' : '') + myData[i].type + ((myData[i].type == 'ind') ? '</b>' : '') + '</td>';
+		sReturn += '<td>' + ((myData[i].type == 'ind') ? '<b>' : '') + myData[i].name + ((myData[i].type == 'ind') ? '</b>' : '') + '</td>';
+		sReturn += '</tr>';
+		sLast1 = myData[i].level1;
+		sLast2 = myData[i].level2;
+	}
+
+	sReturn += '</tbody></table>';
+	//	console.log(sReturn);
+
+	document.all("loadingmessage").innerHTML = '';
+	document.all("ReportResults").style.display = 'block';
+	document.all('itemcounts').innerHTML = ('<table class="rounded" style="border:1px solid #C0C0C0;"><tr><td><strong>LEVEL1 (PROGRAMMES):&nbsp;</strong></td><td>' + iPR + '</td></tr>' + '<tr><td><strong>LEVEL2 (GROUPS):&nbsp;</strong></td><td>' + iGR + '</td></tr><tr><td><strong>LEVEL3 (indicators + elements):&nbsp;</strong></td><td>' + (iIND + iDE) + '</td></tr><tr><td>' + ' ~ indicators:&nbsp;</td><td>' + iIND + '</td></tr><tr><td> ~ elements:&nbsp;</td><td>' + iDE + '</td></tr></table>');
+
+	$('#'+sDestination).html(sReturn);
+}
+function LoadHTMLresultsTable(myData,sDestination){
+
+	var i;
+	var p;
+	var sReturn = '';
+	var sBGcol;
+	var sCol;
+	var iNum = 0;
+	var iDen = 0;
+	var sLastOU;
+
+	sReturn += '<table class="listTable gridTable"><thead><tr>';
+
+	for(i = 0; i < myData.headers.length; i++) {
+		sReturn += '<th>' + myData.headers[i].name + '</th>';
+	}
+
+	sReturn += '</tr></tr></thead>';
+	sReturn += '<tbody>';
+
+	for(i = 0; i < myData.rows.length; i++) {
+		sReturn += '<tr>';
+		for(p = 0; p < myData.headers.length; p++) {
+			sReturn += '<td>' + myData.rows[i][p] + '</td>';
+		}
+		sReturn += '</tr>';
+	}
+
+	sReturn += '</tbody></table>';
+
+	$(sDestination).html(sReturn);
+}
+
+function formatNumber(num)
+{
+    return ("" + num).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, function($1) { return $1 + " " });
+}
+
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+function LookupName(theData,Val){
+
+	sReturn = theData[Val];
+	return  sReturn;
+}
+
+function ReturnLookup(theData,dx,ou){
+
+	var i;
+	var sReturn = '';
+
+	for(i = 0; i < theData.rows.length; i++) {
+	
+		if (theData.rows[i][0] == dx)
+		{
+			if (theData.rows[i][1] == ou)
+			{
+				sReturn = theData.rows[i][3];
+			}
+		}
+
+	}
+
+	return sReturn;
+}
+function ReturnLookupValue(theData,dx,co,ou){
+
+	var i;
+	var sReturn = '';
+
+	for(i = 0; i < theData.rows.length; i++) {
+	
+		if (theData.rows[i][0] == dx)
+		{
+			if (theData.rows[i][1] == ou)
+			{
+				if (theData.rows[i][2] == co)
+				{
+					sReturn = theData.rows[i][3];
+				}
+			}
+		}
+
+	}
+
+	return sReturn;
+}
+
+function ReturnPreviousMonthName(){
+	var d = new Date();
+	var monthNames = ["January", "February", "March", "April", "May", "June",
+	  "July", "August", "September", "October", "November", "December"];
+	return monthNames[d.getMonth()-1];
+}
+function ReturnPreviousMonthYear(){
+	var y = new Date();
+	if (y.getMonth() == 12){
+		return y.getFullYear()-1;
+	}
+	else{
+		return y.getFullYear();
+	}
+}
+
+function ReturnMonthAbbr(iMonth){
+	var d = new Date();
+	var monthShortNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+	return monthShortNames[iMonth];
+}
+</script>
+
+<div id='loadingmessage' name='loadingmessage' style=''>
+	<div style='color:#999999;font-family:arial;font-weight:700;font-size:11pt;width:25%;border:1px solid #F5F5F5;padding:4px;vertical-align:middle;' class='rounded'><Img Src='../images/ajax-loader-circle.gif'>&nbsp;LOADING</div>
+</div>
+
+<table style='width:900px;height:100%;display:none;' id='ReportResults' name='ReportResults'>
+ <tr>
+	<td style="font-size:8pt;" id='itemcounts'>
+	
+	</td>
+ </tr>
+ <tr>
+  <td id='DataBlock1Content' name='DataBlock1Content' style=''>
+ 
+  </td>
+ </tr>
+ <tr>
+  <td style='color:#CFCFCF;font-size:8pt;height:10px;'>
+	&nbsp;
+  </td>
+ </tr>
+</table>
